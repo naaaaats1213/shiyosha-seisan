@@ -310,7 +310,7 @@
       <input type="file" id="bkFile" accept="application/json,.json" hidden>
       <div class="actions"><button type="button" class="btn danger" id="wipe">すべてのデータを削除</button></div>
     </div>
-    <footer>私用車精算 v1.2</footer>
+    <footer>私用車精算 v1.3</footer>
   </section>
 </main>
 
@@ -824,10 +824,12 @@ async function outputFlow(trips, reissueBatch) {
 
   const to = (db.settings.mailTo || '').trim(), cc = (db.settings.mailCc || '').trim();
   const dates = trips.map(t => t.date).sort();
-  const subject = `【私用車精算】${db.settings.name || ''} No.${headNo}${reissue ? '（再出力）' : ''}`;
-  const body = [`精算番号：${headNo}${reissue ? '（再出力）' : ''}`, `対象期間：${fmtDate(dates[0])}〜${fmtDate(dates[dates.length - 1])}`, `件数：${trips.length}件`, `合計金額：${yen(tot)}`, '',
-    `添付：${fname}`].join('\n');
+  const period = dates[0] === dates[dates.length - 1] ? fmtDate(dates[0]) : `${fmtDate(dates[0])}〜${fmtDate(dates[dates.length - 1])}`;
+  const subject = `私用車精算表（${period}）${reissue ? '再出力' : ''}`;
   const useShare = canShare && (db.settings.mailMode || 'share') === 'share';
+  const body = [...(useShare && to ? ['※送り先のメールアドレスをコピーしています。宛先に貼り付けてください。', ''] : []),
+    `精算番号：${headNo}${reissue ? '（再出力）' : ''}`, `対象期間：${period}`, `件数：${trips.length}件`, `合計金額：${yen(tot)}`, '',
+    `添付：${fname}`].join('\n');
   const mailGuide = !to
     ? `<div class="note err" style="margin:0 0 10px">${svg('warn', 16)}<span>送り先が未設定です。「設定」の「メール送信」で送り先を登録してください。</span></div>`
     : useShare
