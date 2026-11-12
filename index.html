@@ -1,0 +1,1250 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2a2622">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="私用車精算">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<title>私用車精算</title>
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.webmanifest">
+<style>
+  :root{
+    --bg:#f5f2ec; --card:#fff; --ink:#2a2622; --sub:#6f665d; --line:#e4ddd2; --field:#d6cdbf;
+    --sumi:#2a2622; --sumi-2:#433a33; --wood:#8c6239; --wood-2:#74502d; --wood-bg:#f3ebe0;
+    --ok:#4a6b3a; --ok-bg:#e9f0e3; --warn:#8a6100; --warn-bg:#fff6dc; --err:#a12626; --err-bg:#fdecec;
+    --mono:Consolas,'Cascadia Mono','Menlo',ui-monospace,monospace;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:'Hiragino Sans','Yu Gothic UI','Yu Gothic','Meiryo',system-ui,sans-serif;font-size:15px;line-height:1.6;padding-bottom:calc(72px + env(safe-area-inset-bottom))}
+  header{background:var(--sumi);color:#fff;position:sticky;top:0;z-index:20;padding-top:env(safe-area-inset-top)}
+  .wrap{max-width:720px;margin:0 auto;padding:0 16px}
+  header .wrap{display:flex;align-items:center;gap:10px;height:54px}
+  header h1{font-size:16px;font-weight:700;margin:0;letter-spacing:.04em}
+  header .tag{margin-left:auto;font-size:11px;border:1px solid rgba(255,255,255,.35);border-radius:3px;padding:1px 6px;opacity:.85;white-space:nowrap}
+  main.wrap{padding-top:16px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px;margin-bottom:14px}
+  h2{font-size:14px;margin:0 0 6px;color:var(--sumi);display:flex;align-items:center;gap:8px}
+  h2 .cnt{margin-left:auto;font-size:12px;font-weight:500;color:var(--sub)}
+  h3{font-size:13px;margin:16px 0 4px;color:var(--sumi)}
+  .tab{display:none}.tab.on{display:block}
+
+  label.f{display:block;font-size:12px;color:var(--sub);margin:12px 0 4px}
+  input[type=text],input[type=number],input[type=date],select,textarea{width:100%;padding:9px 11px;border:1px solid var(--field);border-radius:6px;font:inherit;font-size:16px;background:#fff;color:var(--ink);min-height:42px;-webkit-appearance:none;appearance:none}
+  select{background-image:linear-gradient(45deg,transparent 50%,var(--sub) 50%),linear-gradient(135deg,var(--sub) 50%,transparent 50%);background-position:calc(100% - 16px) 18px,calc(100% - 11px) 18px;background-size:5px 5px;background-repeat:no-repeat;padding-right:30px}
+  input:focus,select:focus,textarea:focus{outline:2px solid rgba(140,98,57,.35);border-color:var(--wood)}
+  input[readonly]{background:#f8f6f2}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .row3{display:grid;grid-template-columns:1fr auto 1fr;gap:6px;align-items:end}
+  .hint{color:var(--sub);font-size:12px;margin:6px 0 0}
+  .chk{display:flex;align-items:center;gap:8px;font-size:14px;margin-top:10px;cursor:pointer}
+  .chk input{width:20px;height:20px;accent-color:var(--wood);margin:0}
+  .chk.dis{opacity:.45;cursor:default}
+  .checks{display:flex;flex-wrap:wrap;gap:4px 18px}
+
+  .seg{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--field);border-radius:7px;overflow:hidden}
+  .seg button{border:0;background:#fff;color:var(--sub);font:inherit;font-size:13px;padding:9px 4px;cursor:pointer;border-left:1px solid var(--line)}
+  .seg button:first-child{border-left:0}
+  .seg button.on{background:var(--sumi);color:#fff;font-weight:700}
+
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--wood);color:#fff;border:0;border-radius:6px;padding:10px 16px;font:inherit;font-weight:700;font-size:14px;cursor:pointer;min-height:44px}
+  .btn:hover{background:var(--wood-2)}
+  .btn:disabled{opacity:.45;cursor:default}
+  .btn.block{width:100%}
+  .btn.ghost{background:#fff;color:var(--wood-2);border:1px solid #d9c9b5;font-weight:500}
+  .btn.ghost:hover{background:var(--wood-bg)}
+  .btn.dark{background:var(--sumi)}
+  .btn.danger{background:#fff;color:var(--err);border:1px solid #e8c4c4;font-weight:500}
+  .btn.sm{min-height:34px;padding:5px 10px;font-size:13px}
+  .icon-btn{border:0;background:none;color:var(--sub);padding:6px;border-radius:5px;cursor:pointer;display:inline-flex}
+  .icon-btn:hover{background:var(--wood-bg);color:var(--wood-2)}
+  .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+  .actions .btn{flex:1}
+
+  .calc{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--wood-bg);border-radius:7px;padding:10px 12px;margin-top:14px;font-size:13px;color:var(--wood-2)}
+  .calc .amt{font-family:var(--mono);font-size:22px;font-weight:700;color:var(--sumi)}
+  .src{display:flex;align-items:center;gap:6px;background:#f8f6f2;border:1px dashed var(--field);border-radius:6px;padding:8px 10px;margin-top:10px;font-size:13px}
+  .src b{font-family:var(--mono);font-size:16px}
+
+  .note{display:flex;gap:8px;align-items:flex-start;background:var(--warn-bg);color:var(--warn);border-radius:6px;padding:10px 12px;font-size:13px;margin:0 0 12px}
+  .note.info{background:#f1ede6;color:var(--sumi-2)}
+  .note.err{background:var(--err-bg);color:var(--err)}
+  .note.ok{background:var(--ok-bg);color:var(--ok)}
+  .hidden{display:none!important}
+
+  .list .item{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+  .list .item:last-child{border-bottom:0}
+  .item .route{font-weight:700;font-size:14px;display:flex;align-items:center;gap:4px;flex-wrap:wrap;line-height:1.4}
+  .item .meta{color:var(--sub);font-size:12px;margin-top:2px}
+  .item .amtc{text-align:right;font-family:var(--mono);font-weight:700;white-space:nowrap}
+  .item .ops{display:flex;gap:2px;justify-content:flex-end}
+  .item.settled .route{color:var(--sub)}
+  .item input[type=checkbox]{width:22px;height:22px;accent-color:var(--wood);margin:0}
+  .badge{display:inline-block;font-size:11px;font-weight:500;padding:0 6px;border-radius:3px;background:#efe9df;color:var(--sub);white-space:nowrap;line-height:1.7}
+  .badge.ok{background:var(--ok-bg);color:var(--ok)}
+  .badge.hw{background:#e8eef5;color:#2c4f7a}
+  .badge.warn{background:var(--warn-bg);color:var(--warn)}
+  .badge.err{background:var(--err-bg);color:var(--err)}
+  .empty{color:var(--sub);font-size:13px;text-align:center;padding:18px 0}
+  .sum{display:flex;justify-content:space-between;align-items:baseline;border-top:2px solid var(--sumi);margin-top:6px;padding-top:10px;font-size:13px;color:var(--sub)}
+  .sum b{font-family:var(--mono);font-size:20px;color:var(--sumi)}
+
+  table.mtx{width:100%;border-collapse:collapse;font-size:13px}
+  table.mtx th,table.mtx td{padding:7px 6px;border-bottom:1px solid var(--line);text-align:left}
+  table.mtx th{font-size:11px;color:var(--sub);font-weight:500;background:#f8f6f2}
+  table.mtx td.n{font-family:var(--mono);text-align:right;white-space:nowrap}
+  .tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:6px;margin-top:8px}
+
+  nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:30;background:#fff;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(3,1fr);padding-bottom:env(safe-area-inset-bottom)}
+  nav.tabs button{border:0;background:none;font:inherit;font-size:11px;color:var(--sub);padding:8px 0 7px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;position:relative}
+  nav.tabs button.on{color:var(--wood-2);font-weight:700}
+  nav.tabs button.on::before{content:"";position:absolute;top:0;left:30%;right:30%;height:3px;background:var(--wood);border-radius:0 0 3px 3px}
+  nav.tabs .dot{position:absolute;top:5px;left:calc(50% + 8px);min-width:16px;height:16px;border-radius:8px;background:var(--wood);color:#fff;font-size:10px;line-height:16px;padding:0 4px;font-weight:700}
+
+  .modal-bg{position:fixed;inset:0;z-index:50;background:rgba(30,25,20,.5);display:flex;align-items:flex-end;justify-content:center}
+  @media (min-width:600px){.modal-bg{align-items:center}}
+  .modal{background:#fff;width:100%;max-width:560px;max-height:88vh;overflow:auto;border-radius:12px 12px 0 0;padding:18px 16px calc(16px + env(safe-area-inset-bottom))}
+  @media (min-width:600px){.modal{border-radius:12px}}
+  .modal h3{margin:0 0 10px;font-size:16px;display:flex;align-items:center;gap:8px}
+  .modal h3.err{color:var(--err)} .modal h3.warn{color:var(--warn)}
+  .modal .body{font-size:14px}
+  .modal .actions .btn{flex:1 1 130px}
+  .modal .body ul{margin:6px 0;padding-left:18px}
+  .preview img{width:100%;display:block;border:1px solid var(--line);border-radius:4px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+
+  .toast{position:fixed;left:50%;top:calc(62px + env(safe-area-inset-top));transform:translateX(-50%);background:var(--sumi);color:#fff;padding:10px 16px;border-radius:8px;font-size:13px;z-index:60;max-width:90vw;box-shadow:0 4px 14px rgba(0,0,0,.2);transition:opacity .2s;pointer-events:none}
+  .toast.err{background:var(--err)}
+  footer{color:var(--sub);font-size:11px;text-align:center;padding:4px 0 24px}
+  .kv{display:grid;grid-template-columns:auto 1fr;gap:2px 12px;font-size:13px}
+  .kv span:nth-child(odd){color:var(--sub)}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 17H3.8a.8.8 0 0 1-.8-.8V13l2.1-5.2A2 2 0 0 1 7 6.5h10a2 2 0 0 1 1.9 1.3L21 13v3.2a.8.8 0 0 1-.8.8H19"/><path d="M3 13h18"/><circle cx="7.5" cy="17" r="2"/><circle cx="16.5" cy="17" r="2"/><path d="M9.5 17h5"/></svg>
+    <h1>私用車精算</h1>
+    <span class="tag">端末内保存・外部送信なし</span>
+  </div>
+</header>
+
+<main class="wrap">
+  <!-- ===== 入力 ===== -->
+  <section id="tab-input" class="tab on">
+    <div class="card">
+      <div id="editBanner" class="note hidden"></div>
+      <h2 id="formTitle"></h2>
+
+      <label class="f" for="fDate">日付</label>
+      <input type="date" id="fDate">
+
+      <label class="f">距離の入れ方</label>
+      <div class="seg" id="modeSeg">
+        <button type="button" data-m="route">拠点・登録経路</button>
+        <button type="button" data-m="meter">メーター</button>
+        <button type="button" data-m="map">地図で調べる</button>
+      </div>
+
+      <div id="pRoute">
+        <div class="row3">
+          <div><label class="f" for="rFrom">出発地点</label><select id="rFrom"></select></div>
+          <button type="button" class="icon-btn" id="rSwap" title="出発と到着を入れ替える" aria-label="出発と到着を入れ替える" style="margin-bottom:6px"></button>
+          <div><label class="f" for="rTo">到着地点</label><select id="rTo"></select></div>
+        </div>
+        <div class="checks">
+          <label class="chk" id="hwWrap"><input type="checkbox" id="fHw"> 高速・有料道路を使う</label>
+          <label class="chk"><input type="checkbox" id="fRound"> 往復</label>
+        </div>
+        <div class="src" id="routeSrc"></div>
+      </div>
+
+      <div id="pFree" class="hidden">
+        <div class="row3">
+          <div><label class="f" for="fFrom">出発地点</label><input type="text" id="fFrom" list="places" autocomplete="off" placeholder="例：本社"></div>
+          <button type="button" class="icon-btn" id="fSwap" title="出発と到着を入れ替える" aria-label="出発と到着を入れ替える" style="margin-bottom:6px"></button>
+          <div><label class="f" for="fTo">到着地点</label><input type="text" id="fTo" list="places" autocomplete="off" placeholder="例：取引先"></div>
+        </div>
+        <datalist id="places"></datalist>
+        <div id="pMeter">
+          <div class="row2">
+            <div><label class="f" for="fMs">出発時メーター（km）</label><input type="number" id="fMs" inputmode="decimal" step="0.1" min="0"></div>
+            <div><label class="f" for="fMe">到着時メーター（km）</label><input type="number" id="fMe" inputmode="decimal" step="0.1" min="0"></div>
+          </div>
+          <p class="hint">出発時にメーターだけ入れておけば、到着後に続きを入力できます（入力途中の内容は自動で保存されます）。</p>
+        </div>
+        <div id="pMap">
+          <button type="button" class="btn ghost block" id="mapBtn" style="margin-top:12px"></button>
+          <p class="hint">Googleマップが別の画面で開きます。表示された距離を下の欄に入れてください（Googleには地点名だけが渡ります）。</p>
+          <label class="chk"><input type="checkbox" id="fHwFree"> 高速・有料道路を使った</label>
+        </div>
+        <label class="chk"><input type="checkbox" id="fSaveRoute"> この区間を登録経路に追加する</label>
+      </div>
+
+      <div class="row2">
+        <div><label class="f" for="fKm">距離（km）</label><input type="number" id="fKm" inputmode="decimal" step="0.1" min="0"></div>
+        <div><label class="f" for="fCar">車種</label><select id="fCar"></select></div>
+      </div>
+
+      <label class="f" for="fNote">備考（用務）</label>
+      <input type="text" id="fNote" placeholder="例：イベント備品の運搬" maxlength="60">
+
+      <div class="calc"><span id="cExp"></span><span class="amt" id="cAmt">0円</span></div>
+      <div id="formErr" class="note err hidden" style="margin:12px 0 0"></div>
+
+      <div class="actions">
+        <button type="button" class="btn" id="saveBtn"></button>
+      </div>
+      <div class="actions" id="editActs" style="margin-top:8px">
+        <button type="button" class="btn ghost" id="cancelEdit">編集をやめる</button>
+        <button type="button" class="btn danger" id="delBtn">この移動を削除</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 id="unTitle"></h2>
+      <div class="list" id="unList"></div>
+      <div class="sum" id="unSum"></div>
+    </div>
+  </section>
+
+  <!-- ===== PDF送信 ===== -->
+  <section id="tab-pdf" class="tab">
+    <div class="card">
+      <h2 id="pdfTitle"></h2>
+      <div class="row2">
+        <div><label class="f" for="pPeriod">対象期間</label><select id="pPeriod"></select></div>
+        <div><label class="f">&nbsp;</label><label class="chk" style="margin-top:8px"><input type="checkbox" id="pShowSettled"> 精算済も表示</label></div>
+      </div>
+      <div class="actions" style="margin-top:10px">
+        <button type="button" class="btn ghost sm" id="pAll">すべて選択</button>
+        <button type="button" class="btn ghost sm" id="pNone">選択を外す</button>
+      </div>
+      <div class="list" id="pList" style="margin-top:6px"></div>
+      <div class="sum" id="pSum"></div>
+      <div class="actions">
+        <button type="button" class="btn block" id="pMake"></button>
+      </div>
+      <p class="hint">PDFを作って「メールで送信」を押すと、PDFを添付したメールを作れます。送り先は「設定」で登録したアドレスです。送信できた移動は自動で「精算済」になります。</p>
+    </div>
+  </section>
+
+  <!-- ===== 設定 ===== -->
+  <section id="tab-settings" class="tab">
+    <div class="card">
+      <h2 id="sUserTitle"></h2>
+      <label class="f" for="sName">氏名</label><input type="text" id="sName" maxlength="30">
+      <div class="row2">
+        <div><label class="f" for="sDept">所属</label><input type="text" id="sDept" maxlength="30"></div>
+        <div><label class="f" for="sEmp">社員番号（任意）</label><input type="text" id="sEmp" maxlength="20" inputmode="numeric"></div>
+      </div>
+      <p class="hint">PDFの見出しに印字されます。</p>
+    </div>
+
+    <div class="card">
+      <h2 id="sMailTitle"></h2>
+      <label class="f" for="sMailTo">送り先（To）</label><input type="email" id="sMailTo" inputmode="email" autocomplete="email" placeholder="例：soumu@example.co.jp" maxlength="200">
+      <label class="f" for="sMailCc">CC（任意・複数はカンマ区切り）</label><input type="email" id="sMailCc" inputmode="email" multiple placeholder="例：jibun@example.co.jp" maxlength="300">
+      <label class="f" for="sMailMode">送り方</label>
+      <select id="sMailMode">
+        <option value="share">PDFを自動で添付する（宛先は貼り付け）</option>
+        <option value="mailto">宛先を自動で入れる（PDFは自分で添付）</option>
+      </select>
+      <p class="hint" id="sMailModeHint"></p>
+      <p class="hint">送り先は、この端末の中だけに保存されます。</p>
+    </div>
+
+    <div class="card">
+      <h2 id="sRateTitle"></h2>
+      <div id="sRates"></div>
+      <div class="row2">
+        <div><label class="f" for="sDefCar">車種の初期値</label><select id="sDefCar"></select></div>
+        <div><label class="f" for="sRound">1円未満の端数</label>
+          <select id="sRound"><option value="floor">切り捨て</option><option value="round">四捨五入</option><option value="ceil">切り上げ</option></select></div>
+      </div>
+      <p class="hint">規定金額の変更は、未精算の移動に反映されます。精算済の移動は、出力したときの金額のままです。</p>
+    </div>
+
+    <div class="card">
+      <h2 id="sRouteTitle"></h2>
+      <p class="hint" style="margin-top:0">拠点間の距離は2026/11/12時点のGoogleマップの距離（車・最短ルート）です。高速・有料は、高速道路や有料区間を使うルートの距離です。</p>
+      <div class="tablewrap"><table class="mtx"><thead><tr><th>区間</th><th style="text-align:right">一般道</th><th style="text-align:right">高速・有料</th><th></th></tr></thead><tbody id="sRouteList"></tbody></table></div>
+      <h3 id="rtFormTitle">経路を追加</h3>
+      <div class="row2">
+        <div><label class="f" for="rtFrom">地点A</label><input type="text" id="rtFrom" list="places"></div>
+        <div><label class="f" for="rtTo">地点B</label><input type="text" id="rtTo" list="places"></div>
+      </div>
+      <div class="row2">
+        <div><label class="f" for="rtKm">一般道（km）</label><input type="number" id="rtKm" inputmode="decimal" step="0.1" min="0"></div>
+        <div><label class="f" for="rtKmHw">高速・有料（km・任意）</label><input type="number" id="rtKmHw" inputmode="decimal" step="0.1" min="0"></div>
+      </div>
+      <div class="actions">
+        <button type="button" class="btn" id="rtSave">追加する</button>
+        <button type="button" class="btn ghost hidden" id="rtCancel">やめる</button>
+      </div>
+      <p class="hint">登録した経路は、AからB・BからAのどちらでも使えます。</p>
+    </div>
+
+    <div class="card">
+      <h2 id="sHistTitle"></h2>
+      <p class="hint" style="margin-top:0">PDFで出力した精算の一覧です。開くと、再出力・精算の取り消し（再精算）・内容の変更ができます。</p>
+      <div class="list" id="sHist"></div>
+    </div>
+
+    <div class="card">
+      <h2 id="sAppTitle"></h2>
+      <div id="appState"></div>
+    </div>
+
+    <div class="card">
+      <h2 id="sDataTitle"></h2>
+      <div class="note info" style="margin-top:6px"><span id="sDataIcon"></span><span>入力した内容は、この端末の中だけに保存されます。機種変更の前や、アプリを消す前にはバックアップを書き出してください。</span></div>
+      <div class="actions">
+        <button type="button" class="btn ghost" id="bkExport">バックアップを書き出す</button>
+        <button type="button" class="btn ghost" id="bkImport">バックアップを読み込む</button>
+      </div>
+      <input type="file" id="bkFile" accept="application/json,.json" hidden>
+      <div class="actions"><button type="button" class="btn danger" id="wipe">すべてのデータを削除</button></div>
+    </div>
+    <footer>私用車精算 v1.2</footer>
+  </section>
+</main>
+
+<nav class="tabs" id="tabs">
+  <button type="button" data-t="input" class="on"><span class="ic"></span>入力</button>
+  <button type="button" data-t="pdf"><span class="ic"></span>PDF送信<span class="dot hidden" id="pdfDot"></span></button>
+  <button type="button" data-t="settings"><span class="ic"></span>設定</button>
+</nav>
+
+<script>
+'use strict';
+/* ========== アイコン（SVG） ========== */
+const P = {
+  pencil:'<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>',
+  pdf:'<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M12 18v-6M9.5 14.5L12 12l2.5 2.5"/>',
+  gear:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
+  arrow:'<path d="M5 12h14M13 6l6 6-6 6"/>',
+  both:'<path d="M4 9h16l-4-4M20 15H4l4 4"/>',
+  swap:'<path d="M7 4v16M4 7l3-3 3 3M17 20V4M14 17l3 3 3-3"/>',
+  trash:'<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',
+  pin:'<path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/>',
+  list:'<path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/>',
+  user:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+  yen:'<path d="M6 4l6 8 6-8M12 12v8M7 13h10M7 17h10"/>',
+  route:'<circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M8 19h8a3 3 0 0 0 0-6H8a3 3 0 0 1 0-6h8"/>',
+  hist:'<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/>',
+  db:'<ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/>',
+  info:'<circle cx="12" cy="12" r="9"/><path d="M12 16v-4M12 8h.01"/>',
+  warn:'<path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18h.01"/>',
+  check:'<path d="M5 12l5 5 9-10"/>',
+  share:'<path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/>',
+  download:'<path d="M12 4v12M7 11l5 5 5-5M4 20h16"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  chev:'<path d="M9 6l6 6-6 6"/>',
+};
+const svg = (k, s=18) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex:none">${P[k]}</svg>`;
+
+/* ========== 初期データ ========== */
+const CARS = ['普通自動車', '軽自動車', '自動二輪車'];
+const BASES = ['三和酒類 本社', '辛島 虚空乃蔵', '安心院葡萄酒工房', '日田蒸留所', '拝田グリーンバイオ工場', '拝田蔵置所・グラウンド'];
+// 2026/11/12時点のGoogleマップ（車）。km：高速・有料を使わない最短ルート／kmHw：高速道路または有料区間を使うルート
+const DEFAULT_ROUTES = [
+  ['三和酒類 本社', '辛島 虚空乃蔵', 4.5, null],
+  ['三和酒類 本社', '安心院葡萄酒工房', 11.8, 14.6],
+  ['三和酒類 本社', '日田蒸留所', 54.1, 56.0],
+  ['三和酒類 本社', '拝田グリーンバイオ工場', 3.0, null],
+  ['三和酒類 本社', '拝田蔵置所・グラウンド', 3.5, null],
+  ['辛島 虚空乃蔵', '安心院葡萄酒工房', 13.2, 17.1],
+  ['辛島 虚空乃蔵', '日田蒸留所', 57.4, 56.0],
+  ['辛島 虚空乃蔵', '拝田グリーンバイオ工場', 3.8, null],
+  ['辛島 虚空乃蔵', '拝田蔵置所・グラウンド', 3.3, null],
+  ['安心院葡萄酒工房', '日田蒸留所', 54.7, 65.0],
+  ['安心院葡萄酒工房', '拝田グリーンバイオ工場', 9.7, null],
+  ['安心院葡萄酒工房', '拝田蔵置所・グラウンド', 10.5, null],
+  ['日田蒸留所', '拝田グリーンバイオ工場', 57.1, 56.7],
+  ['日田蒸留所', '拝田蔵置所・グラウンド', 57.5, 57.1],
+  ['拝田グリーンバイオ工場', '拝田蔵置所・グラウンド', 1.3, null],
+].map(([a, b, km, kmHw], i) => ({ id: 'base' + (i + 1), a, b, km, kmHw }));
+
+const DEF_SETTINGS = {
+  name: '', dept: '', empNo: '', mailTo: '', mailCc: '', mailMode: 'share',
+  rates: { '普通自動車': 25, '軽自動車': 18, '自動二輪車': 6 },
+  defaultCar: '普通自動車', rounding: 'floor',
+  routes: DEFAULT_ROUTES,
+};
+const KEY = 'karashima-shiyosha-seisan-v1';
+const clone = o => JSON.parse(JSON.stringify(o));
+
+let db = loadDb();
+function loadDb() {
+  try {
+    const s = JSON.parse(localStorage.getItem(KEY));
+    if (s && s.v === 1) return normalize(s);
+  } catch (e) { /* 読めない場合は新規 */ }
+  return { v: 1, settings: clone(DEF_SETTINGS), trips: [], batches: [], draft: null };
+}
+function normalize(s) {
+  const d = clone(DEF_SETTINGS);
+  s.settings = Object.assign(d, s.settings || {});
+  s.settings.rates = Object.assign({}, DEF_SETTINGS.rates, s.settings.rates || {});
+  if (!Array.isArray(s.settings.routes)) s.settings.routes = clone(DEFAULT_ROUTES);
+  s.trips = Array.isArray(s.trips) ? s.trips : [];
+  s.batches = Array.isArray(s.batches) ? s.batches : [];
+  return s;
+}
+function save() {
+  try { localStorage.setItem(KEY, JSON.stringify(db)); return true; }
+  catch (e) { toast('保存できませんでした。ブラウザの設定（プライベートモード等）を確認してください。', true); return false; }
+}
+try { navigator.storage && navigator.storage.persist && navigator.storage.persist(); } catch (e) {}
+
+/* ========== 共通関数 ========== */
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const pad = n => String(n).padStart(2, '0');
+function todayISO() { const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; }
+function fmtDate(iso) { if (!iso) return ''; const [y, m, d] = iso.slice(0, 10).split('-'); return `${+y}/${+m}/${+d}`; }
+function fmtDT(iso) { const d = new Date(iso); return `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()} ${pad(d.getHours())}:${pad(d.getMinutes())}`; }
+const WD = '日月火水木金土';
+function wday(iso) { const [y, m, d] = iso.split('-').map(Number); return WD[new Date(y, m - 1, d).getDay()]; }
+function fmtKm(n) { return (Math.round(n * 10) / 10).toFixed(1); }
+const yen = n => Number(n).toLocaleString('ja-JP') + '円';
+function roundYen(x, mode) { const e = 1e-9; return mode === 'round' ? Math.round(x + e) : mode === 'ceil' ? Math.ceil(x - e) : Math.floor(x + e); }
+const batchOf = t => t.batchId ? db.batches.find(b => b.id === t.batchId) : null;
+function rateFor(t) {
+  const b = batchOf(t);
+  if (b && b.rates && b.rates[t.car] != null) return b.rates[t.car];
+  return db.settings.rates[t.car] ?? 0;
+}
+function amountFor(t) { const b = batchOf(t); return roundYen(t.km * rateFor(t), b ? b.rounding : db.settings.rounding); }
+function flags(t) { const f = []; if (t.round) f.push('往復'); if (t.hw) f.push('高速・有料'); return f; }
+function sortTrips(a) { return a.slice().sort((x, y) => x.date === y.date ? x.createdAt.localeCompare(y.createdAt) : x.date.localeCompare(y.date)); }
+
+let toastTimer = null;
+function toast(msg, err) {
+  let t = document.querySelector('.toast');
+  if (!t) { t = document.createElement('div'); t.className = 'toast'; document.body.appendChild(t); }
+  t.textContent = msg; t.classList.toggle('err', !!err); t.style.opacity = '1';
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.style.opacity = '0'; }, 2800);
+}
+
+/* モーダル。buttons: [{label, value, cls}]。戻り値: 押したボタンの value */
+function modal({ title, kind = '', html, buttons }) {
+  return new Promise(resolve => {
+    const bg = document.createElement('div'); bg.className = 'modal-bg';
+    const ic = kind === 'err' || kind === 'warn' ? svg('warn', 20) : kind === 'ok' ? svg('check', 20) : '';
+    bg.innerHTML = `<div class="modal" role="dialog" aria-modal="true"><h3 class="${kind}">${ic}${esc(title)}</h3><div class="body">${html}</div><div class="actions"></div></div>`;
+    const acts = bg.querySelector('.actions');
+    const close = v => { bg.remove(); resolve(v); };
+    (buttons || [{ label: 'OK', value: true }]).forEach(b => {
+      const el = document.createElement('button'); el.type = 'button'; el.className = 'btn ' + (b.cls || '');
+      el.innerHTML = b.label; el.addEventListener('click', () => { if (b.onClick) b.onClick(el, close); else close(b.value); });
+      acts.appendChild(el);
+    });
+    bg.addEventListener('click', e => { if (e.target === bg) close(null); });
+    document.body.appendChild(bg);
+  });
+}
+const ask = (title, html, okLabel = 'OK', kind = 'warn', okCls = '') =>
+  modal({ title, kind, html, buttons: [{ label: 'やめる', value: false, cls: 'ghost' }, { label: okLabel, value: true, cls: okCls }] });
+
+/* ========== 経路 ========== */
+function placesAll() {
+  const s = new Set(BASES);
+  db.settings.routes.forEach(r => { s.add(r.a); s.add(r.b); });
+  return [...s];
+}
+function findRoute(a, b) { return db.settings.routes.find(r => (r.a === a && r.b === b) || (r.a === b && r.b === a)); }
+function destinationsFrom(a) {
+  const s = [];
+  db.settings.routes.forEach(r => { if (r.a === a) s.push(r.b); else if (r.b === a) s.push(r.a); });
+  return [...new Set(s)];
+}
+
+/* ========== タブ ========== */
+const tabsIcons = { input: 'pencil', pdf: 'pdf', settings: 'gear' };
+document.querySelectorAll('#tabs button').forEach(b => {
+  b.querySelector('.ic').innerHTML = svg(tabsIcons[b.dataset.t], 22);
+  b.addEventListener('click', () => showTab(b.dataset.t));
+});
+function showTab(t) {
+  document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.t === t));
+  document.querySelectorAll('.tab').forEach(s => s.classList.toggle('on', s.id === 'tab-' + t));
+  if (t === 'pdf') { resetPdfSel(); renderPdf(); }
+  if (t === 'settings') renderSettings();
+  if (t === 'input') renderInput();
+  window.scrollTo(0, 0);
+}
+
+/* ========== 入力タブ ========== */
+let mode = 'route';
+let editingId = null;
+$('formTitle').innerHTML = svg('pencil') + '<span id="formTitleTx">移動を記録する</span>';
+$('rSwap').innerHTML = svg('swap', 20); $('fSwap').innerHTML = svg('swap', 20);
+$('mapBtn').innerHTML = svg('pin') + 'Googleマップで距離を調べる';
+$('unTitle').innerHTML = svg('list') + '未精算の移動<span class="cnt" id="unCnt"></span>';
+
+function fillSelect(sel, items, value) {
+  sel.innerHTML = items.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join('');
+  if (value != null && items.includes(value)) sel.value = value;
+}
+function setMode(m) {
+  mode = m;
+  document.querySelectorAll('#modeSeg button').forEach(b => b.classList.toggle('on', b.dataset.m === m));
+  $('pRoute').classList.toggle('hidden', m !== 'route');
+  $('pFree').classList.toggle('hidden', m === 'route');
+  $('pMeter').classList.toggle('hidden', m !== 'meter');
+  $('pMap').classList.toggle('hidden', m !== 'map');
+  $('fKm').readOnly = m !== 'map';
+  recalc();
+}
+document.querySelectorAll('#modeSeg button').forEach(b => b.addEventListener('click', () => { setMode(b.dataset.m); saveDraft(); }));
+
+function refreshRouteSelects(keepFrom, keepTo) {
+  const from = keepFrom ?? $('rFrom').value;
+  const all = placesAll().filter(p => destinationsFrom(p).length);
+  fillSelect($('rFrom'), all, all.includes(from) ? from : all[0]);
+  const dests = destinationsFrom($('rFrom').value);
+  const to = keepTo ?? $('rTo').value;
+  fillSelect($('rTo'), dests, dests.includes(to) ? to : dests[0]);
+}
+$('rFrom').addEventListener('change', () => { refreshRouteSelects(); recalc(); saveDraft(); });
+$('rTo').addEventListener('change', () => { recalc(); saveDraft(); });
+$('rSwap').addEventListener('click', () => { const a = $('rFrom').value, b = $('rTo').value; refreshRouteSelects(b, a); recalc(); saveDraft(); });
+$('fSwap').addEventListener('click', () => { const a = $('fFrom').value; $('fFrom').value = $('fTo').value; $('fTo').value = a; recalc(); saveDraft(); });
+['fHw', 'fRound', 'fCar', 'fMs', 'fMe', 'fKm', 'fFrom', 'fTo', 'fNote', 'fDate', 'fHwFree', 'fSaveRoute'].forEach(id => {
+  $(id).addEventListener('input', () => { recalc(); saveDraft(); });
+  $(id).addEventListener('change', () => { recalc(); saveDraft(); });
+});
+$('mapBtn').addEventListener('click', () => {
+  const a = $('fFrom').value.trim(), b = $('fTo').value.trim();
+  if (!a || !b) { toast('出発地点と到着地点を入れてください', true); return; }
+  const url = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(a)}&destination=${encodeURIComponent(b)}&travelmode=driving`;
+  window.open(url, '_blank', 'noopener');
+});
+
+/* 入力内容から距離などを決める */
+function currentForm() {
+  const f = { date: $('fDate').value, method: mode, car: $('fCar').value, note: $('fNote').value.trim(), round: false, hw: false };
+  if (mode === 'route') {
+    f.from = $('rFrom').value; f.to = $('rTo').value;
+    const r = findRoute(f.from, f.to);
+    f.hw = $('fHw').checked && !!(r && r.kmHw);
+    f.round = $('fRound').checked;
+    f.routeKm = r ? (f.hw ? r.kmHw : r.km) : null;
+    f.km = f.routeKm != null ? Math.round(f.routeKm * (f.round ? 2 : 1) * 10) / 10 : null;
+  } else {
+    f.from = $('fFrom').value.trim(); f.to = $('fTo').value.trim();
+    if (mode === 'meter') {
+      f.meterS = $('fMs').value === '' ? null : +$('fMs').value;
+      f.meterE = $('fMe').value === '' ? null : +$('fMe').value;
+      f.km = f.meterS != null && f.meterE != null && f.meterE > f.meterS ? Math.round((f.meterE - f.meterS) * 10) / 10 : null;
+    } else {
+      f.km = $('fKm').value === '' ? null : Math.round(+$('fKm').value * 10) / 10;
+      f.hw = $('fHwFree').checked;
+    }
+    f.saveRoute = $('fSaveRoute').checked;
+  }
+  return f;
+}
+function recalc() {
+  const f = currentForm();
+  if (mode === 'route') {
+    const r = findRoute(f.from, f.to);
+    const hasHw = !!(r && r.kmHw);
+    $('fHw').disabled = !hasHw; $('hwWrap').classList.toggle('dis', !hasHw);
+    if (!hasHw) $('fHw').checked = false;
+    $('routeSrc').innerHTML = r
+      ? `${svg('route', 16)}<span>${hasHw && $('fHw').checked ? '高速・有料' : '一般道'} <b>${fmtKm(f.routeKm)}</b> km${f.round ? ' × 往復' : ''}</span>`
+      : `${svg('info', 16)}<span>この区間は登録されていません</span>`;
+    $('fKm').value = f.km != null ? fmtKm(f.km) : '';
+  } else if (mode === 'meter') {
+    $('fKm').value = f.km != null ? fmtKm(f.km) : '';
+  }
+  const rate = db.settings.rates[f.car] ?? 0;
+  const km = f.km ?? 0;
+  $('cExp').textContent = `${rate} 円/km × ${fmtKm(km)} km`;
+  $('cAmt').textContent = yen(roundYen(km * rate, db.settings.rounding));
+}
+
+function validate(f) {
+  if (!f.date) return '日付を入れてください。';
+  if (!f.from || !f.to) return '出発地点と到着地点を入れてください。';
+  if (mode === 'meter') {
+    if (f.meterS == null || f.meterE == null) return '出発時と到着時のメーターを入れてください。';
+    if (f.meterE <= f.meterS) return '到着時メーターは出発時メーターより大きい数字にしてください。';
+  }
+  if (!(f.km > 0)) return '距離を入れてください。';
+  if (f.km > 2000) return '距離が大きすぎます。入力を確認してください。';
+  return '';
+}
+
+$('saveBtn').addEventListener('click', async () => {
+  const f = currentForm();
+  const err = validate(f);
+  $('formErr').classList.toggle('hidden', !err); $('formErr').textContent = err;
+  if (err) return;
+  const rec = { date: f.date, method: f.method, from: f.from, to: f.to, km: f.km, hw: f.hw, round: f.round, car: f.car, note: f.note,
+    meterS: f.method === 'meter' ? f.meterS : null, meterE: f.method === 'meter' ? f.meterE : null };
+  if (f.saveRoute && f.method !== 'route' && !findRoute(f.from, f.to)) {
+    // 片道の距離として登録（高速を使った場合は高速・有料の欄にも同じ値を入れる。設定で直せる）
+    db.settings.routes.push({ id: uid(), a: f.from, b: f.to, km: f.km, kmHw: f.hw ? f.km : null });
+  }
+  if (editingId) {
+    const t = db.trips.find(x => x.id === editingId);
+    if (!t) { endEdit(); return; }
+    Object.assign(t, rec, { updatedAt: new Date().toISOString() });
+    const b = batchOf(t);
+    if (b) b.modified = true;
+    save(); toast(b ? `精算済（No.${b.no}）の移動を変更しました` : '変更しました');
+    const wasSettled = !!b;
+    endEdit();
+    if (wasSettled) { showTab('settings'); openBatch(b.id); return; }
+  } else {
+    db.trips.push(Object.assign({ id: uid(), createdAt: new Date().toISOString(), batchId: null }, rec));
+    db.draft = null;
+    save(); toast('登録しました');
+    resetForm(true);
+  }
+  renderInput();
+});
+
+function resetForm(keepDate) {
+  const d = keepDate ? $('fDate').value || todayISO() : todayISO();
+  $('fDate').value = d;
+  $('fMs').value = ''; $('fMe').value = ''; $('fKm').value = ''; $('fNote').value = '';
+  $('fFrom').value = ''; $('fTo').value = ''; $('fRound').checked = false; $('fHw').checked = false; $('fHwFree').checked = false; $('fSaveRoute').checked = false;
+  fillSelect($('fCar'), CARS, db.settings.defaultCar);
+  $('formErr').classList.add('hidden');
+  recalc();
+}
+function loadIntoForm(t) {
+  $('fDate').value = t.date; $('fNote').value = t.note || '';
+  fillSelect($('fCar'), CARS, t.car);
+  setMode(t.method || 'map');
+  if (t.method === 'route') {
+    refreshRouteSelects(t.from, t.to);
+    $('fRound').checked = !!t.round; $('fHw').checked = !!t.hw;
+  } else {
+    $('fFrom').value = t.from; $('fTo').value = t.to;
+    $('fMs').value = t.meterS ?? ''; $('fMe').value = t.meterE ?? '';
+    $('fKm').value = t.km != null ? fmtKm(t.km) : '';
+    $('fHwFree').checked = !!t.hw; $('fSaveRoute').checked = false;
+  }
+  recalc();
+}
+let draftTimer = null;
+function saveDraft() {
+  if (editingId) return;
+  clearTimeout(draftTimer);
+  draftTimer = setTimeout(() => {
+    db.draft = { mode, date: $('fDate').value, rFrom: $('rFrom').value, rTo: $('rTo').value, hw: $('fHw').checked, round: $('fRound').checked,
+      from: $('fFrom').value, to: $('fTo').value, ms: $('fMs').value, me: $('fMe').value, km: $('fKm').value, car: $('fCar').value, note: $('fNote').value,
+      hwFree: $('fHwFree').checked };
+    save();
+  }, 300);
+}
+function restoreDraft() {
+  const d = db.draft;
+  if (!d) return;
+  $('fDate').value = d.date || todayISO();
+  fillSelect($('fCar'), CARS, d.car || db.settings.defaultCar);
+  refreshRouteSelects(d.rFrom, d.rTo);
+  $('fHw').checked = !!d.hw; $('fRound').checked = !!d.round;
+  $('fFrom').value = d.from || ''; $('fTo').value = d.to || '';
+  $('fMs').value = d.ms || ''; $('fMe').value = d.me || ''; $('fKm').value = d.km || ''; $('fNote').value = d.note || '';
+  $('fHwFree').checked = !!d.hwFree;
+  setMode(d.mode || 'route');
+}
+
+function startEdit(id) {
+  const t = db.trips.find(x => x.id === id);
+  if (!t) return;
+  editingId = id;
+  document.querySelectorAll('.modal-bg').forEach(m => m.remove());
+  showTab('input');
+  loadIntoForm(t);
+  const b = batchOf(t);
+  $('editBanner').className = 'note' + (b ? ' err' : ' info');
+  $('editBanner').innerHTML = svg(b ? 'warn' : 'info', 16) + (b
+    ? `<span>精算済（No.${esc(b.no)}・${fmtDT(b.createdAt)}出力）の移動を編集しています。変更後は「設定 → 過去の精算」からPDFを再出力してください。</span>`
+    : '<span>登録済みの移動を編集しています。</span>');
+  renderInput();
+}
+function endEdit() { editingId = null; resetForm(false); restoreDraft(); renderInput(); }
+$('cancelEdit').addEventListener('click', endEdit);
+$('delBtn').addEventListener('click', async () => {
+  const t = db.trips.find(x => x.id === editingId);
+  if (!t) return;
+  const b = batchOf(t);
+  const ok = await ask('この移動を削除しますか？',
+    `<p>${fmtDate(t.date)}　${esc(t.from)} → ${esc(t.to)}　${fmtKm(t.km)}km</p>` + (b ? `<p style="color:var(--err)">この移動は精算済（No.${esc(b.no)}）です。削除すると、精算の内容と提出済みのPDFが合わなくなります。</p>` : '') + '<p>削除すると元に戻せません。</p>',
+    '削除する', b ? 'err' : 'warn', 'dark');
+  if (!ok) return;
+  db.trips = db.trips.filter(x => x.id !== t.id);
+  if (b) { b.tripIds = b.tripIds.filter(i => i !== t.id); b.modified = true; }
+  save(); toast('削除しました'); endEdit();
+});
+
+function tripItem(t, opts = {}) {
+  const b = batchOf(t);
+  const fl = flags(t).map(x => `<span class="badge ${x === '高速・有料' ? 'hw' : ''}">${x}</span>`).join(' ');
+  const st = b ? `<span class="badge ok">精算済 No.${esc(b.no)}</span>` : '';
+  const left = opts.check ? `<input type="checkbox" data-sel="${t.id}" ${opts.checked ? 'checked' : ''} aria-label="選択">` : `<span style="color:var(--sub)">${svg('pin', 18)}</span>`;
+  const ops = opts.edit ? `<div class="ops"><button class="icon-btn" data-edit="${t.id}" aria-label="編集" title="編集">${svg('pencil', 17)}</button></div>` : '';
+  return `<div class="item ${b ? 'settled' : ''}">${left}
+    <div><div class="route">${esc(t.from)} ${svg(t.round ? 'both' : 'arrow', 14)} ${esc(t.to)}</div>
+    <div class="meta">${fmtDate(t.date)}（${wday(t.date)}）・${fmtKm(t.km)}km・${esc(t.car)}${t.note ? '・' + esc(t.note) : ''}</div>
+    <div style="margin-top:3px">${fl} ${st}</div></div>
+    <div><div class="amtc">${yen(amountFor(t))}</div>${ops}</div></div>`;
+}
+
+function renderInput() {
+  const editing = !!editingId;
+  $('formTitleTx').textContent = editing ? '移動を編集する' : '移動を記録する';
+  $('saveBtn').innerHTML = editing ? svg('check') + '変更を保存する' : svg('plus') + '登録する';
+  $('editActs').classList.toggle('hidden', !editing);
+  $('editBanner').classList.toggle('hidden', !editing);
+  $('places').innerHTML = placesAll().map(p => `<option value="${esc(p)}">`).join('');
+  const un = sortTrips(db.trips.filter(t => !t.batchId)).reverse();
+  $('unCnt').textContent = un.length ? `${un.length}件` : '';
+  $('unList').innerHTML = un.length ? un.map(t => tripItem(t, { edit: true })).join('') : '<div class="empty">未精算の移動はありません</div>';
+  const tot = un.reduce((s, t) => s + amountFor(t), 0), km = un.reduce((s, t) => s + t.km, 0);
+  $('unSum').innerHTML = un.length ? `<span>合計 ${fmtKm(km)} km</span><b>${yen(tot)}</b>` : '';
+  $('unSum').classList.toggle('hidden', !un.length);
+  $('pdfDot').textContent = db.trips.filter(t => !t.batchId).length;
+  $('pdfDot').classList.toggle('hidden', !db.trips.some(t => !t.batchId));
+}
+document.addEventListener('click', e => {
+  const ed = e.target.closest('[data-edit]');
+  if (ed) startEdit(ed.dataset.edit);
+});
+
+/* ========== PDF送信タブ ========== */
+$('pdfTitle').innerHTML = svg('pdf') + '精算する移動を選ぶ';
+$('pMake').innerHTML = svg('pdf') + 'PDFを作成する';
+let pdfSel = new Set();
+function pdfVisible() {
+  const per = $('pPeriod').value, showS = $('pShowSettled').checked;
+  return sortTrips(db.trips.filter(t => (showS || !t.batchId) && (per === 'all' || t.date.startsWith(per))));
+}
+function resetPdfSel() {
+  renderPeriodOptions();
+  pdfSel = new Set(pdfVisible().filter(t => !t.batchId).map(t => t.id));
+}
+function renderPeriodOptions() {
+  const cur = $('pPeriod').value || 'all';
+  const months = [...new Set(db.trips.map(t => t.date.slice(0, 7)))].sort().reverse();
+  $('pPeriod').innerHTML = '<option value="all">すべての期間</option>' + months.map(m => `<option value="${m}">${+m.slice(0, 4)}年${+m.slice(5)}月</option>`).join('');
+  $('pPeriod').value = months.includes(cur) || cur === 'all' ? cur : 'all';
+}
+$('pPeriod').addEventListener('change', () => { pdfSel = new Set(pdfVisible().filter(t => !t.batchId).map(t => t.id)); renderPdf(); });
+$('pShowSettled').addEventListener('change', renderPdf);
+$('pAll').addEventListener('click', () => { pdfVisible().forEach(t => pdfSel.add(t.id)); renderPdf(); });
+$('pNone').addEventListener('click', () => { pdfSel.clear(); renderPdf(); });
+$('pList').addEventListener('change', e => {
+  const c = e.target.closest('[data-sel]'); if (!c) return;
+  if (c.checked) pdfSel.add(c.dataset.sel); else pdfSel.delete(c.dataset.sel);
+  renderPdfSum();
+});
+function selectedTrips() { const vis = pdfVisible(); return vis.filter(t => pdfSel.has(t.id)); }
+function renderPdf() {
+  const vis = pdfVisible();
+  // 表示されていないものは選択から外す
+  pdfSel = new Set([...pdfSel].filter(id => vis.some(t => t.id === id)));
+  $('pList').innerHTML = vis.length ? vis.map(t => tripItem(t, { check: true, checked: pdfSel.has(t.id) })).join('')
+    : `<div class="empty">${db.trips.length ? '未精算の移動はありません（精算済を見るには「精算済も表示」）' : 'まだ移動が登録されていません'}</div>`;
+  renderPdfSum();
+}
+function renderPdfSum() {
+  const sel = selectedTrips();
+  const tot = sel.reduce((s, t) => s + amountFor(t), 0), km = sel.reduce((s, t) => s + t.km, 0);
+  const nS = sel.filter(t => t.batchId).length;
+  $('pSum').innerHTML = `<span>${sel.length}件・${fmtKm(km)} km${nS ? `<br><span class="badge err">精算済 ${nS}件を含む</span>` : ''}</span><b>${yen(tot)}</b>`;
+  $('pMake').disabled = !sel.length;
+}
+
+function nextBatchNo() {
+  const y = new Date().getFullYear();
+  const n = db.batches.filter(b => b.no.startsWith(y + '-')).length + 1;
+  return `${y}-${String(n).padStart(3, '0')}`;
+}
+
+/* 精算済を含む場合の確認（エラー表示） */
+async function confirmReissue(settled) {
+  const groups = {};
+  settled.forEach(t => { const b = batchOf(t); (groups[b.id] ||= { b, n: 0 }).n++; });
+  const li = Object.values(groups).map(g => `<li>No.${esc(g.b.no)}（${fmtDT(g.b.createdAt)} 出力）… ${g.n}件</li>`).join('');
+  return ask('精算済の移動が含まれています',
+    `<p>選んだ移動のうち <b>${settled.length}件</b> は、すでにPDFで出力・精算済です。</p><ul>${li}</ul><p>同じ移動を二重に精算しないよう、提出先に確認してください。PDFには「再出力」と表示されます。</p>`,
+    '確認したので再出力する', 'err', 'dark');
+}
+
+$('pMake').addEventListener('click', async () => {
+  const trips = sortTrips(selectedTrips());
+  if (!trips.length) return;
+  const settled = trips.filter(t => t.batchId);
+  if (settled.length && !(await confirmReissue(settled))) return;
+  if (!db.settings.name.trim()) {
+    const go = await modal({ title: '氏名が未設定です', kind: 'warn', html: '<p>PDFに印字する氏名・所属を「設定」で入れてください。このまま作成することもできます。</p>',
+      buttons: [{ label: '設定を開く', value: 'set', cls: 'ghost' }, { label: 'このまま作成', value: 'go' }] });
+    if (go === 'set') { showTab('settings'); $('sName').focus(); return; }
+    if (go !== 'go') return;
+  }
+  await outputFlow(trips, null);
+});
+
+/* 出力の流れ：PDF作成 → プレビュー → 共有/保存 → 精算済にする */
+async function outputFlow(trips, reissueBatch) {
+  const fresh = trips.filter(t => !t.batchId);
+  const newNo = fresh.length ? nextBatchNo() : null;
+  let headNo, reissue;
+  if (reissueBatch) { headNo = reissueBatch.no; reissue = true; }
+  else if (newNo) { headNo = newNo; reissue = trips.length !== fresh.length; }
+  else { const nos = [...new Set(trips.map(t => batchOf(t).no))]; headNo = nos.length === 1 ? nos[0] : nos.join('・'); reissue = true; }
+
+  const busy = document.createElement('div'); busy.className = 'modal-bg'; busy.innerHTML = '<div class="modal"><div class="body">PDFを作成しています…</div></div>';
+  document.body.appendChild(busy);
+  let pdf;
+  try { pdf = await makePdf({ trips, headNo, reissue }); }
+  catch (e) { console.error(e); busy.remove(); toast('PDFを作成できませんでした', true); return; }
+  busy.remove();
+
+  const safeName = (db.settings.name || '未設定').replace(/[\\/:*?"<>|\s]/g, '');
+  const fname = `私用車精算_${headNo.replace(/・/g, '_')}${reissue ? '_再出力' : ''}_${safeName}.pdf`;
+  const file = new File([pdf.blob], fname, { type: 'application/pdf' });
+  const canShare = !!(navigator.canShare && navigator.canShare({ files: [file] }));
+  const tot = trips.reduce((s, t) => s + amountFor(t), 0);
+  const imgs = pdf.urls.map(u => `<img src="${u}" alt="PDFのプレビュー">`).join('');
+
+  const to = (db.settings.mailTo || '').trim(), cc = (db.settings.mailCc || '').trim();
+  const dates = trips.map(t => t.date).sort();
+  const subject = `【私用車精算】${db.settings.name || ''} No.${headNo}${reissue ? '（再出力）' : ''}`;
+  const body = [`精算番号：${headNo}${reissue ? '（再出力）' : ''}`, `対象期間：${fmtDate(dates[0])}〜${fmtDate(dates[dates.length - 1])}`, `件数：${trips.length}件`, `合計金額：${yen(tot)}`, '',
+    `添付：${fname}`].join('\n');
+  const useShare = canShare && (db.settings.mailMode || 'share') === 'share';
+  const mailGuide = !to
+    ? `<div class="note err" style="margin:0 0 10px">${svg('warn', 16)}<span>送り先が未設定です。「設定」の「メール送信」で送り先を登録してください。</span></div>`
+    : useShare
+      ? `<div class="note info" style="margin:0 0 10px">${svg('info', 16)}<span>「メールで送信」を押すと共有画面が開きます。<b>メール</b>を選ぶと、PDFを添付したメールが作られます。宛先（${esc(to)}）は自動でコピーされるので、宛先欄を長押しして貼り付けてください。</span></div>`
+      : `<div class="note info" style="margin:0 0 10px">${svg('info', 16)}<span>「メールで送信」を押すと、PDFを端末に保存してから、宛先・件名・本文の入ったメール画面を開きます。${canShare ? '' : 'この端末では添付つきの共有ができないため、この方法になります。'}保存したPDF（ファイル名：${esc(fname)}）を添付して送ってください。</span></div>`;
+
+  const result = await modal({
+    title: reissue ? 'PDF（再出力）を確認' : 'PDFを確認', kind: reissue ? 'warn' : '',
+    html: `${mailGuide}<div class="kv" style="margin-bottom:10px"><span>精算番号</span><span>${esc(headNo)}${reissue ? ' <span class="badge err">再出力</span>' : ''}</span><span>件数・合計</span><span>${trips.length}件・${yen(tot)}</span><span>送り先</span><span style="word-break:break-all">${to ? esc(to) + (cc ? `<br>CC：${esc(cc)}` : '') : '未設定'}</span><span>ファイル名</span><span style="word-break:break-all">${esc(fname)}</span></div><div class="preview">${imgs}</div>`,
+    buttons: [
+      { label: '閉じる', value: 'close', cls: 'ghost' },
+      { label: svg('download', 16) + '端末に保存', value: 'dl', cls: 'ghost' },
+      { label: svg('share', 16) + 'メールで送信', cls: '', onClick: async (el, close) => {
+        if (!to) { close('nomail'); return; }
+        try { navigator.clipboard && navigator.clipboard.writeText(to).catch(() => {}); } catch (e) {}
+        if (useShare) {
+          try { await navigator.share({ files: [file], title: subject, text: body }); close('shared'); }
+          catch (e) {
+            if (e && e.name === 'AbortError') toast('送信を中止しました（精算済にはしていません）');
+            else close('mailto');
+          }
+        } else close('mailto');
+      } },
+    ],
+  });
+  pdf.urls.forEach(u => URL.revokeObjectURL(u));
+  if (result === 'nomail') { showTab('settings'); $('sMailTo').focus(); toast('送り先のメールアドレスを入れてください', true); return; }
+  if (result === 'close' || result == null) { toast('PDFは作成のみで、精算済にはしていません'); return; }
+  if (result === 'dl' || result === 'mailto') {
+    download(pdf.blob, fname);
+    if (result === 'mailto') {
+      const q = [cc ? 'cc=' + encodeURIComponent(cc) : '', 'subject=' + encodeURIComponent(subject), 'body=' + encodeURIComponent(body)].filter(Boolean).join('&');
+      setTimeout(() => { location.href = `mailto:${encodeURIComponent(to).replace(/%40/g, '@').replace(/%2C/gi, ',')}?${q}`; }, 600);
+    }
+    const ok = await ask('このPDFで精算しますか？', `<p>PDFを保存しました${result === 'mailto' ? '。メール画面で保存したPDFを添付して送ってください' : ''}。このPDFで精算する場合は「精算済にする」を押してください。</p>`, '精算済にする', '', '');
+    if (!ok) { toast('精算済にはしていません'); return; }
+  }
+  commit(trips, fresh, newNo, reissueBatch);
+}
+function commit(trips, fresh, newNo, reissueBatch) {
+  const now = new Date().toISOString();
+  if (fresh.length) {
+    const b = { id: uid(), no: newNo, createdAt: now, tripIds: fresh.map(t => t.id), rates: clone(db.settings.rates), rounding: db.settings.rounding,
+      status: 'active', reissues: [], modified: false, total: 0 };
+    db.batches.push(b);
+    fresh.forEach(t => { t.batchId = b.id; });
+    b.total = fresh.reduce((s, t) => s + amountFor(t), 0);
+  }
+  const reBatches = new Set(trips.filter(t => !fresh.includes(t)).map(t => t.batchId));
+  if (reissueBatch) reBatches.add(reissueBatch.id);
+  reBatches.forEach(id => { const b = db.batches.find(x => x.id === id); if (b) { b.reissues.push(now); b.modified = false; b.total = db.trips.filter(t => t.batchId === b.id).reduce((s, t) => s + amountFor(t), 0); } });
+  save();
+  toast(fresh.length ? `精算済にしました（No.${newNo}）` : '再出力を記録しました');
+  renderInput(); resetPdfSel(); renderPdf();
+  if ($('tab-settings').classList.contains('on')) renderSettings();
+}
+function download(blob, name) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+}
+
+/* ========== PDF作成（外部ライブラリなし：Canvasで描いてJPEGを埋め込む） ========== */
+const PT_W = 595.28, PT_H = 841.89, SCALE = 2.5;
+const PF = '"Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic","YuGothic","Noto Sans JP","Noto Sans CJK JP","Meiryo",sans-serif';
+const COLS = [['No', 20, 'c'], ['日付', 54, 'c'], ['出発地点', 92, 'l'], ['到着地点', 92, 'l'], ['距離(km)', 40, 'r'], ['車種', 50, 'c'], ['単価', 30, 'r'], ['費用(円)', 46, 'r'], ['備考', 99.28, 'l']];
+const ROWS_PER_PAGE = 28, ROW_H = 20;
+
+function fitText(ctx, text, maxW, size, bold) {
+  let s = size;
+  ctx.font = `${bold ? 700 : 400} ${s}px ${PF}`;
+  while (ctx.measureText(text).width > maxW && s > 6.5) { s -= 0.5; ctx.font = `${bold ? 700 : 400} ${s}px ${PF}`; }
+  if (ctx.measureText(text).width <= maxW) return text;
+  let t = text;
+  while (t.length > 1 && ctx.measureText(t + '…').width > maxW) t = t.slice(0, -1);
+  return t + '…';
+}
+function cellText(ctx, text, x, y, w, align, size = 8.5, bold = false) {
+  const t = fitText(ctx, String(text), w - 6, size, bold);
+  ctx.textAlign = align === 'r' ? 'right' : align === 'c' ? 'center' : 'left';
+  const tx = align === 'r' ? x + w - 3 : align === 'c' ? x + w / 2 : x + 3;
+  ctx.fillText(t, tx, y);
+}
+
+function drawPage(ctx, d) {
+  ctx.setTransform(ctx.canvas.width / PT_W, 0, 0, ctx.canvas.height / PT_H, 0, 0);
+  ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, PT_W, PT_H);
+  ctx.fillStyle = '#000'; ctx.strokeStyle = '#000'; ctx.textBaseline = 'alphabetic';
+  const M = 36, S = db.settings;
+  // 見出し
+  ctx.font = `700 19px ${PF}`; ctx.textAlign = 'left'; ctx.fillText('私用車精算表', M, 64);
+  if (d.reissue) {
+    const x = M + ctx.measureText('私用車精算表').width + 12;
+    ctx.strokeStyle = '#b3261e'; ctx.fillStyle = '#b3261e'; ctx.lineWidth = 1.2;
+    ctx.strokeRect(x, 49, 52, 20); ctx.font = `700 11px ${PF}`; ctx.textAlign = 'center'; ctx.fillText('再出力', x + 26, 63);
+    ctx.fillStyle = '#000'; ctx.strokeStyle = '#000';
+  }
+  // 押印欄
+  const bw = 50, bx0 = PT_W - M - bw * 3, by = 34;
+  ctx.lineWidth = .6;
+  ['承認', '確認', '申請者'].forEach((l, i) => {
+    const x = bx0 + i * bw;
+    ctx.strokeRect(x, by, bw, 14); ctx.strokeRect(x, by + 14, bw, 44);
+    ctx.font = `400 8px ${PF}`; ctx.textAlign = 'center'; ctx.fillText(l, x + bw / 2, by + 10);
+  });
+  // 情報
+  ctx.font = `400 9.5px ${PF}`; ctx.textAlign = 'left';
+  const info = [
+    [['精算番号', d.headNo], ['出力日', fmtDate(todayISO())]],
+    [['氏名', S.name || ''], ['所属', S.dept || ''], ['社員番号', S.empNo || '']],
+    [['対象期間', `${fmtDate(d.minDate)} 〜 ${fmtDate(d.maxDate)}`], ['件数', `${d.count}件`]],
+  ];
+  let y = 94;
+  info.forEach(row => {
+    let x = M;
+    row.forEach(([k, v]) => {
+      ctx.fillStyle = '#555'; ctx.font = `400 8.5px ${PF}`; ctx.fillText(k, x, y);
+      const kw = ctx.measureText(k).width + 6;
+      ctx.fillStyle = '#000'; ctx.font = `700 10px ${PF}`;
+      const vt = fitText(ctx, v, 150, 10, true); ctx.fillText(vt, x + kw, y);
+      x += kw + Math.max(ctx.measureText(vt).width, 40) + 24;
+    });
+    y += 17;
+  });
+  // 表
+  let ty = 150;
+  const tableW = COLS.reduce((s, c) => s + c[1], 0);
+  ctx.fillStyle = '#efe9df'; ctx.fillRect(M, ty, tableW, ROW_H);
+  ctx.fillStyle = '#000';
+  let x = M;
+  COLS.forEach(([n, w]) => { cellText(ctx, n, x, ty + 13.5, w, 'c', 8.5, true); x += w; });
+  ctx.lineWidth = .5; ctx.strokeStyle = '#555';
+  const rowsTop = ty;
+  ty += ROW_H;
+  d.rows.forEach(r => {
+    x = M;
+    const vals = [r.no, fmtDate(r.t.date), r.t.from, r.t.to, fmtKm(r.t.km), r.t.car, rateFor(r.t), amountFor(r.t).toLocaleString('ja-JP'), r.memo];
+    COLS.forEach(([, w, a], i) => { cellText(ctx, vals[i], x, ty + 13.5, w, a, i === 8 ? 8 : 8.5); x += w; });
+    ty += ROW_H;
+  });
+  let bottom = ty;
+  if (d.isLast) {
+    ctx.fillStyle = '#f7f4ef'; ctx.fillRect(M, ty, tableW, ROW_H + 2); ctx.fillStyle = '#000';
+    const wBefore = COLS.slice(0, 4).reduce((s, c) => s + c[1], 0);
+    cellText(ctx, '合計', M, ty + 14.5, wBefore, 'c', 9.5, true);
+    cellText(ctx, fmtKm(d.totalKm), M + wBefore, ty + 14.5, COLS[4][1], 'r', 9, true);
+    const wAmt = COLS.slice(0, 7).reduce((s, c) => s + c[1], 0);
+    cellText(ctx, d.total.toLocaleString('ja-JP'), M + wAmt, ty + 14.5, COLS[7][1], 'r', 9.5, true);
+    bottom = ty + ROW_H + 2;
+  }
+  // 罫線
+  ctx.strokeStyle = '#333'; ctx.lineWidth = .5;
+  for (let k = 0; k <= d.rows.length + 1; k++) { const yy = rowsTop + k * ROW_H; ctx.beginPath(); ctx.moveTo(M, yy); ctx.lineTo(M + tableW, yy); ctx.stroke(); }
+  ctx.beginPath(); ctx.moveTo(M, bottom); ctx.lineTo(M + tableW, bottom); ctx.stroke();
+  x = M;
+  [0, ...COLS.map(c => c[1])].forEach((w, i) => {
+    x += i ? w : 0;
+    ctx.beginPath(); ctx.moveTo(x, rowsTop);
+    const merge = d.isLast && i >= 1 && i <= 3; // 合計行は1〜4列を結合
+    ctx.lineTo(x, merge ? bottom - ROW_H - 2 : bottom); ctx.stroke();
+  });
+  ctx.lineWidth = 1.1; ctx.strokeRect(M, rowsTop, tableW, bottom - rowsTop);
+  // 注記
+  if (d.isLast) {
+    ctx.font = `400 8px ${PF}`; ctx.fillStyle = '#444'; ctx.textAlign = 'left';
+    const R = d.ratesNote;
+    ctx.fillText(`規定金額：${R}　費用＝距離×単価（1円未満${{ floor: '切り捨て', round: '四捨五入', ceil: '切り上げ' }[db.settings.rounding]}）`, M, bottom + 16);
+    ctx.fillText('拠点間の距離は2026/11/12時点のGoogleマップの距離。メーター入力の移動は、出発時と到着時のメーターの差。', M, bottom + 28);
+  }
+  // フッター
+  ctx.font = `400 8px ${PF}`; ctx.fillStyle = '#666'; ctx.textAlign = 'center';
+  ctx.fillText(`${d.pageNo} / ${d.pageCount}`, PT_W / 2, PT_H - 24);
+  ctx.textAlign = 'right'; ctx.fillText(`私用車精算　${fmtDT(new Date().toISOString())} 作成`, PT_W - M, PT_H - 24);
+}
+
+async function makePdf({ trips, headNo, reissue }) {
+  const rows = trips.map((t, i) => {
+    const b = batchOf(t);
+    const pre = [];
+    if (b && b.no !== headNo) pre.push(`[No.${b.no}]`);
+    const fl = flags(t);
+    if (t.method === 'meter') pre.push(`メーター${fmtKm(t.meterS)}→${fmtKm(t.meterE)}`);
+    return { no: i + 1, t, memo: [...pre, fl.join('・'), t.note].filter(Boolean).join(' ') };
+  });
+  const pages = [];
+  for (let i = 0; i < rows.length; i += ROWS_PER_PAGE) pages.push(rows.slice(i, i + ROWS_PER_PAGE));
+  if (!pages.length) pages.push([]);
+  const dates = trips.map(t => t.date).sort();
+  const usedCars = [...new Set(trips.map(t => t.car))];
+  const rateSrc = trips.find(t => !t.batchId) ? db.settings.rates : (batchOf(trips[0])?.rates || db.settings.rates);
+  const ratesNote = CARS.filter(c => usedCars.includes(c)).map(c => `${c} ${rateSrc[c]}円/km`).join('　');
+  const common = { headNo, reissue, minDate: dates[0], maxDate: dates[dates.length - 1], count: trips.length,
+    total: trips.reduce((s, t) => s + amountFor(t), 0), totalKm: trips.reduce((s, t) => s + t.km, 0), ratesNote };
+  const imgs = [];
+  for (let p = 0; p < pages.length; p++) {
+    const c = document.createElement('canvas');
+    c.width = Math.round(PT_W * SCALE); c.height = Math.round(PT_H * SCALE);
+    drawPage(c.getContext('2d'), Object.assign({ rows: pages[p], pageNo: p + 1, pageCount: pages.length, isLast: p === pages.length - 1 }, common));
+    const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.9));
+    imgs.push({ bytes: new Uint8Array(await blob.arrayBuffer()), w: c.width, h: c.height, url: URL.createObjectURL(blob) });
+  }
+  return { blob: buildPdf(imgs), urls: imgs.map(i => i.url) };
+}
+
+function buildPdf(imgs) {
+  const enc = new TextEncoder(); const parts = []; let len = 0; const offs = [];
+  const push = x => { const b = typeof x === 'string' ? enc.encode(x) : x; parts.push(b); len += b.length; };
+  push(new Uint8Array([0x25, 0x50, 0x44, 0x46, 0x2d, 0x31, 0x2e, 0x34, 0x0a, 0x25, 0xe2, 0xe3, 0xcf, 0xd3, 0x0a])); // %PDF-1.4
+  const obj = (id, fn) => { offs[id] = len; push(`${id} 0 obj\n`); fn(); push('\nendobj\n'); };
+  const n = imgs.length;
+  obj(1, () => push('<< /Type /Catalog /Pages 2 0 R >>'));
+  obj(2, () => push(`<< /Type /Pages /Kids [${imgs.map((_, i) => `${3 + 3 * i} 0 R`).join(' ')}] /Count ${n} >>`));
+  imgs.forEach((im, i) => {
+    const p = 3 + 3 * i;
+    obj(p, () => push(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${PT_W} ${PT_H}] /Resources << /XObject << /Im${i} ${p + 2} 0 R >> >> /Contents ${p + 1} 0 R >>`));
+    const cs = `q ${PT_W} 0 0 ${PT_H} 0 0 cm /Im${i} Do Q`;
+    obj(p + 1, () => push(`<< /Length ${cs.length} >>\nstream\n${cs}\nendstream`));
+    obj(p + 2, () => { push(`<< /Type /XObject /Subtype /Image /Width ${im.w} /Height ${im.h} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${im.bytes.length} >>\nstream\n`); push(im.bytes); push('\nendstream'); });
+  });
+  const total = 3 + 3 * n, xref = len;
+  let x = `xref\n0 ${total}\n0000000000 65535 f \n`;
+  for (let i = 1; i < total; i++) x += String(offs[i]).padStart(10, '0') + ' 00000 n \n';
+  push(x); push(`trailer\n<< /Size ${total} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`);
+  return new Blob(parts, { type: 'application/pdf' });
+}
+
+/* ========== 設定タブ ========== */
+$('sUserTitle').innerHTML = svg('user') + '申請者';
+$('sRateTitle').innerHTML = svg('yen') + '車種と規定金額';
+$('sRouteTitle').innerHTML = svg('route') + '登録経路（拠点間の距離）';
+$('sHistTitle').innerHTML = svg('hist') + '過去の精算';
+$('sDataTitle').innerHTML = svg('db') + 'データの保存とバックアップ';
+$('sMailTitle').innerHTML = svg('share') + 'メール送信';
+$('sAppTitle').innerHTML = svg('download') + 'アプリとして使う';
+$('sDataIcon').innerHTML = svg('info', 16);
+
+[['sName', 'name'], ['sDept', 'dept'], ['sEmp', 'empNo'], ['sMailTo', 'mailTo'], ['sMailCc', 'mailCc']].forEach(([id, k]) => $(id).addEventListener('input', () => { db.settings[k] = $(id).value; save(); }));
+$('sMailTo').addEventListener('change', () => {
+  const v = $('sMailTo').value.trim();
+  if (v && !/^[^@\s,]+@[^@\s,]+\.[^@\s,]+$/.test(v)) toast('メールアドレスの形を確認してください', true); else if (v) toast('送り先を保存しました');
+});
+function mailModeHint() {
+  $('sMailModeHint').textContent = $('sMailMode').value === 'mailto'
+    ? '宛先・件名・本文が入ったメール画面が開きます。PDFは端末に保存されるので、メール画面で添付してください（iPhoneは「ファイル」アプリの「ダウンロード」に保存されます）。'
+    : '共有画面で「メール」を選ぶと、PDFが添付されたメールができます。宛先は自動でコピーされるので、宛先欄に貼り付けてください。';
+}
+$('sMailMode').addEventListener('change', () => { db.settings.mailMode = $('sMailMode').value; save(); mailModeHint(); });
+$('sDefCar').addEventListener('change', () => { db.settings.defaultCar = $('sDefCar').value; save(); if (!editingId) { fillSelect($('fCar'), CARS, db.settings.defaultCar); recalc(); } });
+$('sRound').addEventListener('change', () => { db.settings.rounding = $('sRound').value; save(); recalc(); });
+
+function renderSettings() {
+  const S = db.settings;
+  $('sName').value = S.name; $('sDept').value = S.dept; $('sEmp').value = S.empNo; $('sMailTo').value = S.mailTo || ''; $('sMailCc').value = S.mailCc || ''; $('sMailMode').value = S.mailMode || 'share'; mailModeHint();
+  renderAppState();
+  $('sRates').innerHTML = `<div class="row3" style="grid-template-columns:repeat(3,1fr);gap:10px">` + CARS.map(c =>
+    `<div><label class="f" for="rate-${c}">${c}（円/km）</label><input type="number" id="rate-${c}" data-rate="${c}" inputmode="decimal" min="0" step="1" value="${S.rates[c]}"></div>`).join('') + '</div>';
+  $('sRates').querySelectorAll('[data-rate]').forEach(i => i.addEventListener('change', () => {
+    const v = parseFloat(i.value);
+    if (!(v >= 0)) { i.value = S.rates[i.dataset.rate]; toast('0以上の数字を入れてください', true); return; }
+    S.rates[i.dataset.rate] = v; save(); recalc(); toast(`${i.dataset.rate}の規定金額を ${v}円/km にしました`);
+  }));
+  fillSelect($('sDefCar'), CARS, S.defaultCar);
+  $('sRound').value = S.rounding;
+  renderRoutes();
+  renderHistory();
+}
+
+let routeEditId = null;
+function renderRoutes() {
+  $('sRouteList').innerHTML = db.settings.routes.map(r => `<tr>
+    <td>${esc(r.a)}<br><span style="color:var(--sub)">⇔ ${esc(r.b)}</span></td>
+    <td class="n">${r.km != null ? fmtKm(r.km) : '-'}</td><td class="n">${r.kmHw != null ? fmtKm(r.kmHw) : '-'}</td>
+    <td style="white-space:nowrap;text-align:right"><button class="icon-btn" data-rtedit="${r.id}" aria-label="編集">${svg('pencil', 16)}</button><button class="icon-btn" data-rtdel="${r.id}" aria-label="削除">${svg('trash', 16)}</button></td></tr>`).join('')
+    || '<tr><td colspan="4" class="empty">登録経路はありません</td></tr>';
+  $('places').innerHTML = placesAll().map(p => `<option value="${esc(p)}">`).join('');
+}
+$('sRouteList').addEventListener('click', async e => {
+  const ed = e.target.closest('[data-rtedit]'), del = e.target.closest('[data-rtdel]');
+  if (ed) {
+    const r = db.settings.routes.find(x => x.id === ed.dataset.rtedit);
+    routeEditId = r.id;
+    $('rtFrom').value = r.a; $('rtTo').value = r.b; $('rtKm').value = r.km ?? ''; $('rtKmHw').value = r.kmHw ?? '';
+    $('rtFormTitle').textContent = '経路を編集'; $('rtSave').textContent = '変更を保存する'; $('rtCancel').classList.remove('hidden');
+    $('rtFrom').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+  if (del) {
+    const r = db.settings.routes.find(x => x.id === del.dataset.rtdel);
+    if (await ask('経路を削除しますか？', `<p>${esc(r.a)} ⇔ ${esc(r.b)}</p><p>登録済みの移動には影響しません。</p>`, '削除する', 'warn', 'dark')) {
+      db.settings.routes = db.settings.routes.filter(x => x.id !== r.id); save(); renderRoutes(); refreshRouteSelects(); recalc();
+    }
+  }
+});
+function endRouteEdit() {
+  routeEditId = null; ['rtFrom', 'rtTo', 'rtKm', 'rtKmHw'].forEach(i => $(i).value = '');
+  $('rtFormTitle').textContent = '経路を追加'; $('rtSave').textContent = '追加する'; $('rtCancel').classList.add('hidden');
+}
+$('rtCancel').addEventListener('click', endRouteEdit);
+$('rtSave').addEventListener('click', () => {
+  const a = $('rtFrom').value.trim(), b = $('rtTo').value.trim();
+  const km = parseFloat($('rtKm').value), kmHw = $('rtKmHw').value === '' ? null : parseFloat($('rtKmHw').value);
+  if (!a || !b) return toast('地点AとBを入れてください', true);
+  if (a === b) return toast('地点AとBは別の場所にしてください', true);
+  if (!(km > 0)) return toast('一般道の距離を入れてください', true);
+  if (kmHw != null && !(kmHw > 0)) return toast('高速・有料の距離を確認してください', true);
+  const dup = findRoute(a, b);
+  if (dup && dup.id !== routeEditId) return toast('この区間はすでに登録されています', true);
+  if (routeEditId) Object.assign(db.settings.routes.find(x => x.id === routeEditId), { a, b, km, kmHw });
+  else db.settings.routes.push({ id: uid(), a, b, km, kmHw });
+  save(); toast(routeEditId ? '経路を変更しました' : '経路を追加しました');
+  endRouteEdit(); renderRoutes(); refreshRouteSelects(); recalc();
+});
+
+function renderHistory() {
+  const list = db.batches.slice().sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  $('sHist').innerHTML = list.length ? list.map(b => {
+    const trips = db.trips.filter(t => t.batchId === b.id);
+    const tot = b.status === 'cancelled' ? b.total : trips.reduce((s, t) => s + amountFor(t), 0);
+    const badges = [b.status === 'cancelled' ? '<span class="badge">取消済</span>' : '<span class="badge ok">精算済</span>',
+      b.modified ? '<span class="badge warn">変更あり・未再出力</span>' : '', b.reissues.length ? `<span class="badge">再出力 ${b.reissues.length}回</span>` : ''].join(' ');
+    return `<div class="item" data-batch="${b.id}" style="cursor:pointer"><span style="color:var(--sub)">${svg('pdf', 18)}</span>
+      <div><div class="route">No.${esc(b.no)}</div><div class="meta">${fmtDT(b.createdAt)} 出力・${b.status === 'cancelled' ? b.tripIds.length : trips.length}件</div><div style="margin-top:3px">${badges}</div></div>
+      <div class="amtc" style="${b.status === 'cancelled' ? 'color:var(--sub);text-decoration:line-through' : ''}">${yen(tot)}<div style="color:var(--sub)">${svg('chev', 16)}</div></div></div>`;
+  }).join('') : '<div class="empty">まだ精算はありません</div>';
+}
+$('sHist').addEventListener('click', e => { const it = e.target.closest('[data-batch]'); if (it) openBatch(it.dataset.batch); });
+
+async function openBatch(id) {
+  const b = db.batches.find(x => x.id === id);
+  if (!b) return;
+  const trips = sortTrips(db.trips.filter(t => t.batchId === b.id));
+  const cancelled = b.status === 'cancelled';
+  const tot = trips.reduce((s, t) => s + amountFor(t), 0);
+  const reis = b.reissues.length ? b.reissues.map(fmtDT).join('、') : 'なし';
+  const html = `<div class="kv"><span>出力日時</span><span>${fmtDT(b.createdAt)}</span><span>状態</span><span>${cancelled ? `取消済（${fmtDT(b.cancelledAt)}）` : '精算済'}${b.modified ? ' <span class="badge warn">変更あり・未再出力</span>' : ''}</span><span>再出力</span><span>${reis}</span><span>規定金額</span><span>${CARS.map(c => `${c} ${b.rates[c]}円`).join('／')}</span></div>`
+    + (cancelled ? `<p class="hint">取り消した精算です。含まれていた移動は未精算に戻っています。</p>`
+      : `<div class="list" style="margin-top:8px">${trips.map(t => tripItem(t, { edit: true })).join('') || '<div class="empty">移動がありません</div>'}</div><div class="sum"><span>${trips.length}件</span><b>${yen(tot)}</b></div>`);
+  const r = await modal({ title: `精算 No.${b.no}`, kind: '', html, buttons: cancelled ? [{ label: '閉じる', value: null, cls: 'ghost' }] : [
+    { label: '閉じる', value: null, cls: 'ghost' },
+    { label: '精算を取り消す', value: 'cancel', cls: 'danger' },
+    { label: svg('pdf', 16) + 'PDFを再出力', value: 'reissue', cls: '' },
+  ] });
+  if (r === 'reissue') {
+    if (!trips.length) return toast('移動がありません', true);
+    if (!(await confirmReissue(trips))) return;
+    await outputFlow(trips, b);
+  } else if (r === 'cancel') {
+    const ok = await ask(`No.${b.no} の精算を取り消しますか？`,
+      `<p>含まれる ${trips.length}件 の移動を「未精算」に戻します。内容を直して「PDF送信」から出力し直す（再精算する）ときに使います。</p><p>提出済みのPDFがある場合は、提出先にも取り消しを伝えてください。</p>`, '取り消す', 'err', 'dark');
+    if (!ok) return;
+    b.total = tot; b.status = 'cancelled'; b.cancelledAt = new Date().toISOString();
+    trips.forEach(t => { t.batchId = null; });
+    save(); toast('精算を取り消しました。PDF送信タブから出力し直せます'); renderSettings(); renderInput();
+  }
+}
+
+/* バックアップ */
+$('bkExport').addEventListener('click', async () => {
+  const data = JSON.stringify(Object.assign({}, db, { draft: null, exportedAt: new Date().toISOString() }), null, 1);
+  const name = `私用車精算_バックアップ_${todayISO()}.json`;
+  const blob = new Blob([data], { type: 'application/json' });
+  const file = new File([blob], name, { type: 'application/json' });
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try { await navigator.share({ files: [file], title: name }); return; } catch (e) { if (e && e.name === 'AbortError') return; }
+  }
+  download(blob, name);
+});
+$('bkImport').addEventListener('click', () => $('bkFile').click());
+$('bkFile').addEventListener('change', async () => {
+  const f = $('bkFile').files[0]; $('bkFile').value = '';
+  if (!f) return;
+  try {
+    const d = JSON.parse(await f.text());
+    if (!d || d.v !== 1 || !Array.isArray(d.trips)) throw new Error('形式が違います');
+    const ok = await ask('バックアップを読み込みますか？', `<p>移動 ${d.trips.length}件・精算 ${(d.batches || []).length}件 のバックアップです。いまの端末の内容は、このバックアップで置き換わります。</p>`, '読み込む', 'warn', 'dark');
+    if (!ok) return;
+    db = normalize(d); db.draft = null; save(); toast('読み込みました');
+    resetForm(false); refreshRouteSelects(); renderSettings(); renderInput();
+  } catch (e) { toast('このファイルは読み込めませんでした', true); }
+});
+$('wipe').addEventListener('click', async () => {
+  const ok = await ask('すべてのデータを削除しますか？', '<p>移動・精算の記録・設定をこの端末からすべて削除します。元に戻せません。必要ならバックアップを書き出してから削除してください。</p>', 'すべて削除する', 'err', 'dark');
+  if (!ok) return;
+  localStorage.removeItem(KEY); db = loadDb(); editingId = null;
+  resetForm(false); refreshRouteSelects(); renderSettings(); renderInput(); toast('削除しました');
+});
+
+/* ========== アプリ化（PWA） ========== */
+const isStandalone = () => (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+let installEvt = null;
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); installEvt = e; renderAppState(); });
+window.addEventListener('appinstalled', () => { installEvt = null; toast('ホーム画面に追加しました'); renderAppState(); });
+function renderAppState() {
+  const el = $('appState'); if (!el) return;
+  if (isStandalone()) {
+    el.innerHTML = `<div class="note ok" style="margin:6px 0 0">${svg('check', 16)}<span>アプリとして起動しています。電波がない場所でも入力できます。</span></div>`;
+  } else if (installEvt) {
+    el.innerHTML = `<p class="hint" style="margin-top:0">ホーム画面にアイコンを置いて、アプリとして使えます。</p><div class="actions"><button type="button" class="btn block" id="installBtn">${svg('download', 16)}ホーム画面に追加する</button></div>`;
+    $('installBtn').addEventListener('click', async () => { installEvt.prompt(); await installEvt.userChoice.catch(() => {}); installEvt = null; renderAppState(); });
+  } else if (isIOS) {
+    el.innerHTML = `<p class="hint" style="margin-top:0">iPhoneでは、Safariの共有ボタン（四角から矢印が出ているボタン）→「ホーム画面に追加」→「追加」の順に押してください。ホーム画面のアイコンから開くと、アプリとして使えます。</p><div class="note warn" style="margin:8px 0 0">${svg('warn', 16)}<span>ホーム画面に追加せずSafariで使うと、7日間使わなかったときに入力内容が消えることがあります。</span></div>`;
+  } else {
+    el.innerHTML = `<p class="hint" style="margin-top:0">ブラウザのメニュー（︙）から「ホーム画面に追加」または「アプリをインストール」を選ぶと、アプリとして使えます。</p>`;
+  }
+}
+if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+  window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
+}
+
+/* 起動 */
+fillSelect($('fCar'), CARS, db.settings.defaultCar);
+$('fDate').value = todayISO();
+refreshRouteSelects('三和酒類 本社', '辛島 虚空乃蔵');
+setMode('route');
+restoreDraft();
+if (!db.draft) { $('fDate').value = todayISO(); recalc(); }
+renderInput();
+</script>
+</body>
+</html>
