@@ -33,6 +33,12 @@
   h2 .cnt{margin-left:auto;font-size:12px;font-weight:500;color:var(--sub)}
   h3{font-size:13px;margin:16px 0 4px;color:var(--sumi)}
   .tab{display:none}.tab.on{display:block}
+  details.fold>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;margin:-16px;padding:16px;-webkit-tap-highlight-color:transparent}
+  details.fold>summary::-webkit-details-marker{display:none}
+  details.fold>summary h2{margin:0;flex:1}
+  details.fold>summary::after{content:"";flex:none;width:8px;height:8px;border-right:2px solid var(--sub);border-bottom:2px solid var(--sub);transform:rotate(45deg);margin:-4px 4px 0 0;transition:transform .15s}
+  details.fold[open]>summary::after{transform:rotate(-135deg);margin-top:4px}
+  details.fold[open]>summary{margin-bottom:-4px}
 
   label.f{display:block;font-size:12px;color:var(--sub);margin:12px 0 4px}
   input[type=text],input[type=email],input[type=number],input[type=date],select,textarea{width:100%;padding:9px 11px;border:1px solid var(--field);border-radius:6px;font:inherit;font-size:16px;background:#fff;color:var(--ink);min-height:42px;-webkit-appearance:none;appearance:none}
@@ -235,25 +241,25 @@
 
   <!-- ===== 設定 ===== -->
   <section id="tab-settings" class="tab">
-    <div class="card">
-      <h2 id="sUserTitle"></h2>
+    <details class="card fold" id="fold-user">
+      <summary><h2 id="sUserTitle"></h2></summary>
       <label class="f" for="sName">氏名</label><input type="text" id="sName" maxlength="30">
       <div class="row2">
         <div><label class="f" for="sDept">所属</label><input type="text" id="sDept" maxlength="30"></div>
         <div><label class="f" for="sEmp">社員番号（任意）</label><input type="text" id="sEmp" maxlength="20" inputmode="numeric"></div>
       </div>
       <p class="hint">PDFの見出しに印字されます。</p>
-    </div>
+    </details>
 
-    <div class="card">
-      <h2 id="sMailTitle"></h2>
+    <details class="card fold" id="fold-mail">
+      <summary><h2 id="sMailTitle"></h2></summary>
       <label class="f" for="sMailTo">送り先（To）</label><input type="email" id="sMailTo" inputmode="email" autocomplete="email" placeholder="例：soumu@example.co.jp" maxlength="200">
       <p class="hint">「メールで送信」を押すと共有画面が開き、「メール」を選ぶとPDFを添付したメールができます。送り先のアドレスは自動でコピーされるので、宛先欄に貼り付けてください。</p>
       <p class="hint">送り先は、この端末の中だけに保存されます。</p>
-    </div>
+    </details>
 
-    <div class="card">
-      <h2 id="sRateTitle"></h2>
+    <details class="card fold" id="fold-rate">
+      <summary><h2 id="sRateTitle"></h2></summary>
       <div id="sRates"></div>
       <div class="row2">
         <div><label class="f" for="sDefCar">車種の初期値</label><select id="sDefCar"></select></div>
@@ -261,10 +267,10 @@
           <select id="sRound"><option value="floor">切り捨て</option><option value="round">四捨五入</option><option value="ceil">切り上げ</option></select></div>
       </div>
       <p class="hint">規定金額の変更は、未精算の移動に反映されます。精算済の移動は、出力したときの金額のままです。</p>
-    </div>
+    </details>
 
-    <div class="card">
-      <h2 id="sRouteTitle"></h2>
+    <details class="card fold" id="fold-route">
+      <summary><h2 id="sRouteTitle"></h2></summary>
       <p class="hint" style="margin-top:0">拠点間の距離は2026/11/12時点のGoogleマップの距離（車・最短ルート）です。高速・有料は、高速道路や有料区間を使うルートの距離です。</p>
       <div class="tablewrap"><table class="mtx"><thead><tr><th>区間</th><th style="text-align:right">一般道</th><th style="text-align:right">高速・有料</th><th></th></tr></thead><tbody id="sRouteList"></tbody></table></div>
       <h3 id="rtFormTitle">経路を追加</h3>
@@ -281,21 +287,21 @@
         <button type="button" class="btn ghost hidden" id="rtCancel">やめる</button>
       </div>
       <p class="hint">登録した経路は、AからB・BからAのどちらでも使えます。</p>
-    </div>
+    </details>
 
-    <div class="card">
-      <h2 id="sHistTitle"></h2>
+    <details class="card fold" id="fold-hist">
+      <summary><h2 id="sHistTitle"></h2></summary>
       <p class="hint" style="margin-top:0">PDFで出力した精算の一覧です。開くと、再出力・精算の取り消し（再精算）・内容の変更ができます。</p>
       <div class="list" id="sHist"></div>
-    </div>
+    </details>
 
-    <div class="card">
-      <h2 id="sAppTitle"></h2>
+    <details class="card fold" id="fold-app">
+      <summary><h2 id="sAppTitle"></h2></summary>
       <div id="appState"></div>
-    </div>
+    </details>
 
-    <div class="card">
-      <h2 id="sDataTitle"></h2>
+    <details class="card fold" id="fold-data">
+      <summary><h2 id="sDataTitle"></h2></summary>
       <div class="note info" style="margin-top:6px"><span id="sDataIcon"></span><span>入力した内容は、この端末の中だけに保存されます。機種変更の前や、アプリを消す前にはバックアップを書き出してください。</span></div>
       <div class="actions">
         <button type="button" class="btn ghost" id="bkExport">バックアップを書き出す</button>
@@ -303,8 +309,8 @@
       </div>
       <input type="file" id="bkFile" accept="application/json,.json" hidden>
       <div class="actions"><button type="button" class="btn danger" id="wipe">すべてのデータを削除</button></div>
-    </div>
-    <footer>私用車精算 v1.4</footer>
+    </details>
+    <footer>私用車精算 v1.5</footer>
   </section>
 </main>
 
@@ -787,7 +793,7 @@ $('pMake').addEventListener('click', async () => {
   if (!db.settings.name.trim()) {
     const go = await modal({ title: '氏名が未設定です', kind: 'warn', html: '<p>PDFに印字する氏名・所属を「設定」で入れてください。このまま作成することもできます。</p>',
       buttons: [{ label: '設定を開く', value: 'set', cls: 'ghost' }, { label: 'このまま作成', value: 'go' }] });
-    if (go === 'set') { showTab('settings'); $('sName').focus(); return; }
+    if (go === 'set') { showTab('settings'); openFold('fold-user'); $('sName').focus(); return; }
     if (go !== 'go') return;
   }
   await outputFlow(trips, null);
@@ -821,7 +827,7 @@ async function outputFlow(trips, reissueBatch) {
   const period = dates[0] === dates[dates.length - 1] ? fmtDate(dates[0]) : `${fmtDate(dates[0])}〜${fmtDate(dates[dates.length - 1])}`;
   const subject = `私用車精算表（${period}）${reissue ? '再出力' : ''}`;
   const useShare = canShare;
-  const body = [...(useShare && to ? ['※送り先のメールアドレスをコピーしています。宛先に貼り付けてください。', ''] : []),
+  const body = [...(useShare && to ? ['※送り先のメールアドレスをコピーしています。宛先に貼り付けてください。また、件名についても入力なしで送信することが可能です。', ''] : []),
     `精算番号：${headNo}${reissue ? '（再出力）' : ''}`, `対象期間：${period}`, `件数：${trips.length}件`, `合計金額：${yen(tot)}`, '',
     `添付：${fname}`].join('\n');
   const mailGuide = !to
@@ -850,7 +856,7 @@ async function outputFlow(trips, reissueBatch) {
     ],
   });
   pdf.urls.forEach(u => URL.revokeObjectURL(u));
-  if (result === 'nomail') { showTab('settings'); $('sMailTo').focus(); toast('送り先のメールアドレスを入れてください', true); return; }
+  if (result === 'nomail') { showTab('settings'); openFold('fold-mail'); $('sMailTo').focus(); toast('送り先のメールアドレスを入れてください', true); return; }
   if (result === 'close' || result == null) { toast('PDFは作成のみで、精算済にはしていません'); return; }
   if (result === 'dl' || result === 'mailto') {
     download(pdf.blob, fname);
@@ -1164,6 +1170,20 @@ async function openBatch(id) {
     save(); toast('精算を取り消しました。PDF送信タブから出力し直せます'); renderSettings(); renderInput();
   }
 }
+
+/* 設定の折り畳み（開閉の状態はこの端末に記憶） */
+const FOLD_KEY = 'karashima-shiyosha-folds';
+function loadFolds() { try { return JSON.parse(localStorage.getItem(FOLD_KEY)) || {}; } catch (e) { return {}; } }
+function initFolds() {
+  const st = loadFolds();
+  document.querySelectorAll('details.fold').forEach(d => {
+    const need = (d.id === 'fold-user' && !db.settings.name) || (d.id === 'fold-mail' && !db.settings.mailTo);
+    d.open = d.id in st ? st[d.id] || need : need;
+    d.addEventListener('toggle', () => { const s = loadFolds(); s[d.id] = d.open; try { localStorage.setItem(FOLD_KEY, JSON.stringify(s)); } catch (e) {} });
+  });
+}
+function openFold(id) { const d = $(id); if (d) d.open = true; }
+initFolds();
 
 /* バックアップ */
 $('bkExport').addEventListener('click', async () => {
