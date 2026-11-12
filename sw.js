@@ -1,7 +1,7 @@
 // 私用車精算 Service Worker
 // 画面のファイルだけを端末に保存して、電波がなくても開けるようにする。
 // 入力データ（移動・精算）は扱わない（ブラウザ内の保存領域にだけある）。
-const VERSION = 'v1.3.0';
+const VERSION = 'v1.4.0';
 const CACHE = 'shiyosha-' + VERSION;
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
 
